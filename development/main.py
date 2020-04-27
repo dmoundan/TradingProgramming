@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# I will be putting everything in here for now and maybe split it later
+
 import sys
 import getopt
 import sqlite3
