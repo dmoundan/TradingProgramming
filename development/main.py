@@ -72,6 +72,23 @@ class Instrument:
         df=pd.read_sql_query(query, self._DB.conn)
         return df
 
+    def find_swingHL_one(self, val, w):
+        t=val.shape
+        l=t[0]
+        rd={'Date':[], 'SLH' : [], 'Value': []}
+        for i in range(0+w, l-w):
+            if val.loc[i,'High'] > val.loc[i-w:i-1,'High'].max() and val.loc[i,'High'] > val.loc[i+1:i+w,'High'].max():
+                #print(val.loc[i,'Date'], " SH")
+                rd['Date'].append(val.loc[i,'Date'])
+                rd['SLH'].append("SH")
+                rd['Value'].append(val.loc[i,'High'])
+            elif val.loc[i,'Low'] < val.loc[i-w:i-1,'Low'].min() and val.loc[i,'Low'] < val.loc[i+1:i+w,'Low'].min():
+                #print(val.loc[i,'Date'], " SL")
+                rd['Date'].append(val.loc[i,'Date'])
+                rd['SLH'].append("SL")
+                rd['Value'].append(val.loc[i,'Low'])
+        return pd.DataFrame(rd)
+
 
 
 
@@ -106,11 +123,15 @@ def main(argv):
             if stock in los:
                 print (stock+" is a stock")
                 ins=Instrument(stock, DB_dir+"/"+stock_db)
-                df=ins.get_values(timeframes[0], 5)
+                df=ins.get_values(timeframes[0], 60)
                 #df.set_index('index', inplace=True)
-                df1=df.loc[0:, 'Date':'Adj Close']
-                df1.set_index('Date', inplace=True)
-                print(df1)
+                #df1=df.loc[0:, 'Date':'Adj Close']
+                
+                df2=df.loc[0:, ['Date','High','Low']]
+                #df2.set_index('Date', inplace=True)
+                #print(df2)
+                df3=ins.find_swingHL_one(df2,2)
+                print(df3)
             elif stock in loe:
                 print(stock+" is an ETF")
                 ins=Instrument(stock, DB_dir+"/"+etf_db)
