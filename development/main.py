@@ -6,6 +6,13 @@ import sys
 import getopt
 import sqlite3
 import pandas as pd
+import numpy as np
+
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
+from mpl_finance import candlestick_ohlc
+
 
 
 #-- Collateral Information
@@ -89,6 +96,24 @@ class Instrument:
                 rd['Value'].append(val.loc[i,'Low'])
         return pd.DataFrame(rd)
 
+    def plot_candles(self, tf, period):
+        df=self.get_values(tf, period)
+        df.Date = pd.to_datetime(df.Date)
+        df = df[['Date', 'Open', 'High', 'Low', 'Adj Close', 'Volume']]
+        df["Date"] = df["Date"].apply(mdates.date2num)
+        fig=plt.figure()
+        ax1=plt.subplot2grid((1,1), (0,0))
+        candlestick_ohlc(ax1,df.values)
+        ax1.xaxis_date()
+        ax1.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m-%d'))
+
+        plt.xticks(rotation=45)
+        plt.xlabel('Date')
+        plt.ylabel('Price')
+        plt.title(self._name)
+        plt.show()
+
+
 
 
 
@@ -123,15 +148,16 @@ def main(argv):
             if stock in los:
                 print (stock+" is a stock")
                 ins=Instrument(stock, DB_dir+"/"+stock_db)
-                df=ins.get_values(timeframes[0], 60)
+                #df=ins.get_values(timeframes[0], 60)
                 #df.set_index('index', inplace=True)
                 #df1=df.loc[0:, 'Date':'Adj Close']
                 
-                df2=df.loc[0:, ['Date','High','Low']]
+                #df2=df.loc[0:, ['Date','High','Low']]
                 #df2.set_index('Date', inplace=True)
                 #print(df2)
-                df3=ins.find_swingHL_one(df2,2)
-                print(df3)
+                #df3=ins.find_swingHL_one(df2,2)
+                #print(df3)
+                ins.plot_candles(timeframes[0], 60)
             elif stock in loe:
                 print(stock+" is an ETF")
                 ins=Instrument(stock, DB_dir+"/"+etf_db)
