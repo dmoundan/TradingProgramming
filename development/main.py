@@ -6,12 +6,15 @@ import sys
 import getopt
 import sqlite3
 import pandas as pd
+from pandas.plotting import register_matplotlib_converters
+
 import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as mticker
 from mpl_finance import candlestick_ohlc
+register_matplotlib_converters()
 
 
 
@@ -103,9 +106,11 @@ class Instrument:
         df["Date"] = df["Date"].apply(mdates.date2num)
         fig=plt.figure()
         ax1=plt.subplot2grid((1,1), (0,0))
-        candlestick_ohlc(ax1,df.values)
+        candlestick_ohlc(ax1,df.values, width=0.4, colorup='g', colordown='r')
         ax1.xaxis_date()
         ax1.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m-%d'))
+        ax1.xaxis.set_major_locator(mticker.MaxNLocator(20))
+        ax1.grid(True)
 
         plt.xticks(rotation=45)
         plt.xlabel('Date')
