@@ -15,6 +15,10 @@ import matplotlib.dates as mdates
 import matplotlib.ticker as mticker
 from mpl_finance import candlestick_ohlc
 register_matplotlib_converters()
+from matplotlib import style
+style.use('ggplot') # another style is fivethirtyeight
+#print(plt.style.available)
+#print(plt.__file__) To get to the matplotlib location and then in there find the style sheets : mpldata/stylelib
 
 
 
@@ -111,6 +115,9 @@ class Instrument:
         ax1.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m-%d'))
         ax1.xaxis.set_major_locator(mticker.MaxNLocator(20))
         ax1.grid(True)
+        #ax1.annotate('Bad news!', (df['Date'].values[30], df['Adj Close'].values[30]), xytext=(0.8,0.9), textcoords='axes fraction', arrowprops =dict(facecolor='grey', color='grey'))
+        #font_dict= {'family':'serif', 'color' : 'darkred', 'size' : 15}
+        #ax1.text(df['Date'].values[10], df['Adj Close'].values[10], 'Prices', fontdict=font_dict)
 
         plt.xticks(rotation=45)
         plt.xlabel('Date')
