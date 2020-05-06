@@ -118,11 +118,25 @@ class Instrument:
         #ax1.annotate('Bad news!', (df['Date'].values[30], df['Adj Close'].values[30]), xytext=(0.8,0.9), textcoords='axes fraction', arrowprops =dict(facecolor='grey', color='grey'))
         #font_dict= {'family':'serif', 'color' : 'darkred', 'size' : 15}
         #ax1.text(df['Date'].values[10], df['Adj Close'].values[10], 'Prices', fontdict=font_dict)
+        #To annotate the right edge of the chart
+        #bbox_props=dict(boxstyle='round', fc='w', ec='k', lw=1)
+        #ax1.annotate(str(df['Adj Close'].values[-1]), (df['Date'].values[-1], df['Adj Close'].values[-1]), xytext=(df['Date'].values[-1] + 4, df['Adj Close'].values[-1]), bbox=bbox_props)
+
+        #For subplots (method#1)
+        #fig=plt.figure()
+        #ax1= fig.add_subplot(2,1,1)
+        #ax2=fig.add_subplot (2,1,2) First number says that we split horizontally (s subs), 1 means that it takes the whole width, and the last number is the designation plot#1 nad #2
+        #x,y=create_plots()
+        #ax1.plot(x,y) and have to repeat these two lines for all subplots
+        #For subplots (method #2)
+        #ax1 = plt.subplot2grid((6,1), (0,0) , rowspan=, colspan=) First gives the size of grid 6 rows one col, second tuple is origin, and then how many rows, columns it spans
+        
 
         plt.xticks(rotation=45)
         plt.xlabel('Date')
         plt.ylabel('Price')
         plt.title(self._name)
+        plt.subplots_adjust(left=0.11, bottom=0.24, right=0.90, wspace=0.2, top=0.90, hspace=0 )
         plt.show()
 
 
