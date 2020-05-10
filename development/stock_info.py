@@ -77,6 +77,8 @@ def main(argv):
 
     process_file(file1, los)
     process_file(file2, los)
+    #print(sorted(los))
+
 
     dict1={}
     kset=set()
