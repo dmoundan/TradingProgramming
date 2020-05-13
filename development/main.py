@@ -63,6 +63,9 @@ class DataBase:
         return self._conn
 
 
+MA1=20
+MA2=50
+
 
 class Instrument:
 
@@ -103,18 +106,43 @@ class Instrument:
                 rd['Value'].append(val.loc[i,'Low'])
         return pd.DataFrame(rd)
 
+    def moving_average(self, values, window):
+        weights= np.repeat(1.0, window)/window
+        smas= np.convolve(values, weights, 'valid')
+        return smas
+
     def plot_candles(self, tf, period):
         df=self.get_values(tf, period)
         df.Date = pd.to_datetime(df.Date)
         df = df[['Date', 'Open', 'High', 'Low', 'Adj Close', 'Volume']]
         df["Date"] = df["Date"].apply(mdates.date2num)
         fig=plt.figure()
-        ax1=plt.subplot2grid((1,1), (0,0))
-        candlestick_ohlc(ax1,df.values, width=0.4, colorup='g', colordown='r')
-        ax1.xaxis_date()
-        ax1.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m-%d'))
-        ax1.xaxis.set_major_locator(mticker.MaxNLocator(20))
-        ax1.grid(True)
+        ax1=plt.subplot2grid((6,1), (0,0), rowspan=1, colspan=1)
+        plt.title(self._name)
+        ax2=plt.subplot2grid((6,1), (1,0), rowspan=4, colspan=1)
+        #plt.xlabel('Date')
+        plt.ylabel('Price')
+        ax3=plt.subplot2grid((6,1), (5,0), rowspan=1, colspan=1, sharex=ax2)
+        plt.ylabel('MAVGs')
+        ma1=self.moving_average(df['Adj Close'].values, MA1)
+        ma2=self.moving_average(df['Adj Close'].values, MA2)
+        start= len(df['Date'].values[MA2-1:])
+        candlestick_ohlc(ax2,df.values[-start:], width=0.4, colorup='g', colordown='r')
+        ax2.xaxis_date()
+        
+        ax2.grid(True)
+        ax3.plot(df['Date'].values[-start:], ma1[-start:], linewidth=1)
+        ax3.plot(df['Date'].values[-start:], ma2[-start:], linewidth=1)
+        ax3.fill_between(df['Date'].values[-start:], ma2[-start:], ma1[-start:], where=(ma1[-start:] < ma2[-start:]),
+                          facecolor="r", edgecolor='r', alpha=0.5)
+        
+        ax3.fill_between(df['Date'].values[-start:], ma2[-start:], ma1[-start:], where=(ma1[-start:] > ma2[-start:]),
+                          facecolor="g", edgecolor='g', alpha=0.5)
+        plt.setp(ax1.get_xticklabels(), visible=False)
+        plt.setp(ax2.get_xticklabels(), visible=False)
+        ax3.xaxis.set_major_formatter(mdates.DateFormatter('%y-%m-%d'))
+        ax3.xaxis.set_major_locator(mticker.MaxNLocator(20))
+        ax3.yaxis.set_major_locator(mticker.MaxNLocator(nbins=5, prune='upper'))
         #ax1.annotate('Bad news!', (df['Date'].values[30], df['Adj Close'].values[30]), xytext=(0.8,0.9), textcoords='axes fraction', arrowprops =dict(facecolor='grey', color='grey'))
         #font_dict= {'family':'serif', 'color' : 'darkred', 'size' : 15}
         #ax1.text(df['Date'].values[10], df['Adj Close'].values[10], 'Prices', fontdict=font_dict)
@@ -133,9 +161,7 @@ class Instrument:
         
 
         plt.xticks(rotation=45)
-        plt.xlabel('Date')
-        plt.ylabel('Price')
-        plt.title(self._name)
+        
         plt.subplots_adjust(left=0.11, bottom=0.24, right=0.90, wspace=0.2, top=0.90, hspace=0 )
         plt.show()
 
@@ -183,7 +209,7 @@ def main(argv):
                 #print(df2)
                 #df3=ins.find_swingHL_one(df2,2)
                 #print(df3)
-                ins.plot_candles(timeframes[0], 60)
+                ins.plot_candles(timeframes[0], 120)
             elif stock in loe:
                 print(stock+" is an ETF")
                 ins=Instrument(stock, DB_dir+"/"+etf_db)
