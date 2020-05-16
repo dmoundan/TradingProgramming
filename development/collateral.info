@@ -1,0 +1,6 @@
+collateral_dir=/Users/dinos/Trading/Repos/TradingProgramming/collateral
+DB_dir=/Users/dinos/Trading/Programming/OptionsTrading/DBs
+list_of_stocks=top_interest.csv,top_interest2.csv
+list_of_etfs=etf.list
+etf_db=etf_values.db
+stock_db=stock_values.db
