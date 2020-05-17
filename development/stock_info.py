@@ -113,7 +113,7 @@ def main(argv):
     sfloat_flag=False
     sf_factor=10
     methods_flag=False
-    wk52_factor=-15
+    wk52_factor=-5
     x_factor=-5
     atr_factor=1.2
     rvol_factor=2.0
