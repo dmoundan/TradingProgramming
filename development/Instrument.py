@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+from database import *
+import pandas as pd
+
 class Instrument:
     
     def __init__(self, name, db_name):

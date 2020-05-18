@@ -3,6 +3,7 @@
 timeframes=["daily", "weekly", "monthly"]
 nametype=("ETF", "Stock")
 
+
 def process_file(fn,name_list):
     with open(fn) as f:
         for elem in f.read().splitlines():
