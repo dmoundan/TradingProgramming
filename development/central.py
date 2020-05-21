@@ -4,6 +4,7 @@ import sys
 import getopt
 import helpers as hlp
 from backtester import *
+from strategy import *
 
 
 
@@ -11,6 +12,7 @@ def main(argv):
     collateral_file=""
     list_of_names=""
     strategy=-1
+    tr_strategy=-1
     timeframe=-1
     period=-1
     gp=0.0
@@ -19,11 +21,12 @@ def main(argv):
     names=set()
 
     try:
-        opts, args = getopt.getopt(argv,"hf:l:b:t:p:g:",["collateral_file=","list_of_names=", "bt_strategy=", "timeframe=", "period=", "gap%="])
+        opts, args = getopt.getopt(argv,"hf:l:b:t:p:g:s:",["collateral_file=","list_of_names=", "bt_strategy=", "timeframe=", "period=", "gap%=", "tr_startegy="])
     except getopt.GetoptError:
         print ("""centralpy   -f <file containing  collateral info> 
                             -l <file with list of names to operate on>
                             -b <strategy to be backtested>
+                            -s <strategy to be run>
                             -t <timeframe 0-> daily, 1-> weekly, 2 -> monthly>
                             -p <period to examine>
                             -g <gap percentage>
@@ -33,7 +36,8 @@ def main(argv):
         if opt == '-h':
             print ("""central.py  -f <file containing  collateral info>
                                 -l <file with list of names to operate on> 
-                                -b <strategy to be backtested>            
+                                -b <strategy to be backtested>
+                                -s <startegy to be run>            
                                 -t <timeframe 0-> daily, 1-> weekly, 2 -> monthly>
                                 -p <period to examine>
                                 -g <gap percentage>
@@ -45,6 +49,8 @@ def main(argv):
             list_of_names=arg
         elif opt in("-b","--bt_strategy"):
             strategy=int(arg)
+        elif opt in("-s","--tr_strategy"):
+            tr_strategy=int(arg)
         elif opt in("-t","--timeframe"):
             timeframe=int(arg)
         elif opt in("-p","--period"):
@@ -72,6 +78,10 @@ def main(argv):
         BT=BackTester(dictc,etfs, stocks)
         #BT.run(strategy, names, timeframe=hlp.timeframes[timeframe], period=period, gp=gp)
         BT.run(strategy, names, **dict1)
+
+    if tr_strategy != -1:
+        ST=Strategies(dictc,etfs, stocks)
+        ST.run(tr_strategy, names)
 
 if __name__ == "__main__":
     main(sys.argv[1:])         
