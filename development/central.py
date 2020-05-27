@@ -16,12 +16,14 @@ def main(argv):
     timeframe=-1
     period=-1
     gp=0.0
+    atr_factor=1.0
+    rvol_factor=1.2
     etfs=set()
     stocks=set()
     names=set()
 
     try:
-        opts, args = getopt.getopt(argv,"hf:l:b:t:p:g:s:",["collateral_file=","list_of_names=", "bt_strategy=", "timeframe=", "period=", "gap%=", "tr_startegy="])
+        opts, args = getopt.getopt(argv,"hf:l:b:t:p:g:s:a:r:",["collateral_file=","list_of_names=", "bt_strategy=", "timeframe=", "period=", "gap%=", "tr_startegy=", "atr_factor=","rvol_factor="])
     except getopt.GetoptError:
         print ("""centralpy   -f <file containing  collateral info> 
                             -l <file with list of names to operate on>
@@ -30,6 +32,8 @@ def main(argv):
                             -t <timeframe 0-> daily, 1-> weekly, 2 -> monthly>
                             -p <period to examine>
                             -g <gap percentage>
+                            -a <atr_factor for strategies>
+                            -r <rvol_factor for strategies>
              """)
         sys.exit(2)
     for opt, arg in opts:
@@ -41,6 +45,8 @@ def main(argv):
                                 -t <timeframe 0-> daily, 1-> weekly, 2 -> monthly>
                                 -p <period to examine>
                                 -g <gap percentage>
+                                -a <atr_factor for strategies>
+                                -r <rvol_factor for strategies>
             """)    
             sys.exit()
         elif opt in("-f","--collateral_file"):
@@ -57,6 +63,10 @@ def main(argv):
             period=int(arg)
         elif opt in("-g","--gap%"):
             gp=float(arg)
+        elif opt in("-a","--atr_factor"):
+            atr_factor=float(arg)
+        elif opt in("-r","--rvol_factor"):
+            rvol_factor=float(arg)
     
     dictc=hlp.get_collateral_info(collateral_file)
     etf_files=dictc['list_of_etfs'].split(",")
@@ -81,7 +91,7 @@ def main(argv):
 
     if tr_strategy != -1:
         ST=Strategies(dictc,etfs, stocks)
-        ST.run(tr_strategy, names)
+        ST.run(tr_strategy, names, atr=atr_factor, rvol=rvol_factor)
 
 if __name__ == "__main__":
     main(sys.argv[1:])         

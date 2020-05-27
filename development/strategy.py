@@ -15,7 +15,7 @@ class Strategies:
         self._stocks=stocks
         self._timeframe=tf
 
-    def TigerSharkMomentumStrategy(self, names):
+    def TigerSharkMomentumStrategy(self, names, atr=1.0, rvol=1.2):
         period=15
         """ Looking for a stock that closes very strong within 90% of the range for longs, or very weak at lower 10% of the range.
             Trigger is the high/low of day
@@ -46,8 +46,9 @@ class Strategies:
             curLow=np.asscalar(df.loc[[period-1],['Low']].values)
             curHigh=np.asscalar(df.loc[[period-1],['High']].values)
             curClose=np.asscalar(df.loc[[period-1],['Adj Close']].values)
+            df['AvgVolume']=df.rolling(window=10)['Volume'].mean()
 
-            if((curHigh-curLow) >= (df2.loc[period-1,'ATR'])):
+            if((curHigh-curLow) >= atr * (df2.loc[period-1,'ATR']) and df.loc[period-1,'Volume'] > rvol * df.loc[period-1,'AvgVolume']):
                 if curClose > curOpen and (curHigh - curClose) < 0.1*(curHigh-curLow) :
                     outdict['Ticker'].append(stock)
                     outdict['LongShort'].append("Long")
