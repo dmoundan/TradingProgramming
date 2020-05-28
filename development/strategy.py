@@ -72,7 +72,24 @@ class Strategies:
         pdf.from_file(temp_html,out_file)
         os.remove(temp_html)      
 
-    tr_strategies = {0: TigerSharkMomentumStrategy,}
+    def TestStrategy(self, names, atr=1.0, rvol=1.2):
+        period=50
+        for stock in names:
+            if stock in self._stocks:
+                print (stock+" is a stock")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["stock_db"])
+            elif stock in self._etfs:
+                print(stock+" is an ETF")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["etf_db"])
+            df=ins.get_values(hlp.timeframes[self._timeframe], period)
+            df1 = df[['Date', 'High', 'Low', 'Adj Close', 'Volume']]
+            df2=ins.ind.ma(df1, 8, typ=1)
+            print(df2)
+
+
+
+    tr_strategies = { 0 : TigerSharkMomentumStrategy,
+                     10 : TestStrategy   }
 
     def run(self, strategy, names, **kwargs):
         self.tr_strategies[strategy](self,names,**kwargs)
