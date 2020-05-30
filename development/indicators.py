@@ -96,10 +96,14 @@ class Indicators:
         for i in range(period+1, l ,1):
             curClose=np.asscalar(df.loc[[i],['Adj Close']].values)
             prevClose=np.asscalar(df.loc[[i-1],['Adj Close']].values)
+            cgain=0
+            closs=0
             if curClose >= prevClose:
-                again=((df1.loc[j-1,'PAG']*13)+ (curClose-prevClose))/period
+                cgain=curClose-prevClose
             else:
-                aloss=((df1.loc[j-1,'PAL']*13)+ (prevClose-curClose))/period
+                closs=prevClose-curClose
+            again=((df1.loc[j-1,'PAG']*13)+ (cgain))/period
+            aloss=((df1.loc[j-1,'PAL']*13)+ (closs))/period
             rs=again/aloss
             rsi=100-(100/(1+rs))
             df1.loc[j,'Date']=df.loc[i,'Date']
