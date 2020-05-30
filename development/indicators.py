@@ -42,6 +42,7 @@ class Indicators:
             df1 = df[['Date', 'MA']]
             return df1
         elif typ == 1:
+            print("here")
             smoothing=2
             #first calculate the sma to begin the process
             sma=0
@@ -66,6 +67,50 @@ class Indicators:
                 df1.loc[i,'Date']=df.loc[i,'Date']
                 df1.loc[i,'MA']=ema
             return df1
+
+    def rsi(self,df, period=14):
+        #Would like to do this with an asserion or exception, TODO
+        l=df.shape[0]
+        if l <= period:
+            print("ERROR: The dataframe does not have enough data to calculate the RSI")
+        igain=0
+        iloss=0
+        for i in range (1, period, 1):
+            curClose=np.asscalar(df.loc[[i],['Adj Close']].values)
+            prevClose=np.asscalar(df.loc[[i-1],['Adj Close']].values)
+            if curClose >= prevClose:
+                igain+=(curClose-prevClose)
+            else:
+                iloss+=(prevClose-curClose)
+        iagain=igain/period
+        ialoss=iloss/period
+        irs=iagain/ialoss
+        irsi=100-(100/(1+irs))
+        df1=pd.DataFrame(columns=['Date','RSI','PAG','PAL'])
+        df1.loc[0,'Date']=df.loc[period,'Date']
+        df1.loc[0,'RSI']=irsi
+        df1.loc[0,'PAG']=iagain
+        df1.loc[0,'PAL']=ialoss
+        j=1
+        
+        for i in range(period+1, l ,1):
+            curClose=np.asscalar(df.loc[[i],['Adj Close']].values)
+            prevClose=np.asscalar(df.loc[[i-1],['Adj Close']].values)
+            if curClose >= prevClose:
+                again=((df1.loc[j-1,'PAG']*13)+ (curClose-prevClose))/period
+            else:
+                aloss=((df1.loc[j-1,'PAL']*13)+ (prevClose-curClose))/period
+            rs=again/aloss
+            rsi=100-(100/(1+rs))
+            df1.loc[j,'Date']=df.loc[i,'Date']
+            df1.loc[j,'RSI']=rsi
+            df1.loc[j,'PAG']=again
+            df1.loc[j,'PAL']=aloss
+            j+=1
+        df2 = df1[['Date', 'RSI']]
+        return df2
+
+
 
 
 

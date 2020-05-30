@@ -83,7 +83,8 @@ class Strategies:
                 ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["etf_db"])
             df=ins.get_values(hlp.timeframes[self._timeframe], period)
             df1 = df[['Date', 'High', 'Low', 'Adj Close', 'Volume']]
-            df2=ins.ind.ma(df1, 8, typ=1)
+            #df2=ins.ind.ma(df1, 8, typ=1)
+            df2=ins.ind.rsi(df1)
             print(df2)
 
 
