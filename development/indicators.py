@@ -42,7 +42,6 @@ class Indicators:
             df1 = df[['Date', 'MA']]
             return df1
         elif typ == 1:
-            print("here")
             smoothing=2
             #first calculate the sma to begin the process
             sma=0
@@ -56,16 +55,18 @@ class Indicators:
             sma/=period
             factor=smoothing /(period+1)
             df1=pd.DataFrame(columns=['Date','MA'])
+            j=0
             for i in range(period, l ,1):
-                prev = sma if i == period else np.asscalar(df1.loc[[i-1],['MA']].values)
+                prev = sma if i == period else np.asscalar(df1.loc[[j-1],['MA']].values)
                 if target == 0:
                     ema=np.asscalar(df.loc[[i],['Adj Close']].values) * factor +  prev * (1-factor)
                 elif target == 1:
                     ema=np.asscalar(df.loc[[i],['High']].values) * factor +  prev * (1-factor)
                 elif target == 2:
                     ema=np.asscalar(df.loc[[i],['Low']].values) * factor +  prev * (1-factor)
-                df1.loc[i,'Date']=df.loc[i,'Date']
-                df1.loc[i,'MA']=ema
+                df1.loc[j,'Date']=df.loc[i,'Date']
+                df1.loc[j,'MA']=ema
+                j+=1
             return df1
 
     def rsi(self,df, period=14):
@@ -84,8 +85,11 @@ class Indicators:
                 iloss+=(prevClose-curClose)
         iagain=igain/period
         ialoss=iloss/period
-        irs=iagain/ialoss
-        irsi=100-(100/(1+irs))
+        if ialoss == 0:
+            irsi=100
+        else:    
+            irs=iagain/ialoss
+            irsi=100-(100/(1+irs))
         df1=pd.DataFrame(columns=['Date','RSI','PAG','PAL'])
         df1.loc[0,'Date']=df.loc[period,'Date']
         df1.loc[0,'RSI']=irsi
@@ -102,10 +106,13 @@ class Indicators:
                 cgain=curClose-prevClose
             else:
                 closs=prevClose-curClose
-            again=((df1.loc[j-1,'PAG']*13)+ (cgain))/period
-            aloss=((df1.loc[j-1,'PAL']*13)+ (closs))/period
-            rs=again/aloss
-            rsi=100-(100/(1+rs))
+            again=((df1.loc[j-1,'PAG']*(period-1))+ (cgain))/period
+            aloss=((df1.loc[j-1,'PAL']*(period-1))+ (closs))/period
+            if aloss == 0:
+                rsi = 100
+            else:    
+                rs=again/aloss
+                rsi=100-(100/(1+rs))
             df1.loc[j,'Date']=df.loc[i,'Date']
             df1.loc[j,'RSI']=rsi
             df1.loc[j,'PAG']=again

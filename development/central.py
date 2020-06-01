@@ -18,12 +18,13 @@ def main(argv):
     gp=0.0
     atr_factor=1.0
     rvol_factor=1.2
+    rsi2_factor=2
     etfs=set()
     stocks=set()
     names=set()
 
     try:
-        opts, args = getopt.getopt(argv,"hf:l:b:t:p:g:s:a:r:",["collateral_file=","list_of_names=", "bt_strategy=", "timeframe=", "period=", "gap%=", "tr_startegy=", "atr_factor=","rvol_factor="])
+        opts, args = getopt.getopt(argv,"hf:l:b:t:p:g:s:a:r:i:",["collateral_file=","list_of_names=", "bt_strategy=", "timeframe=", "period=", "gap%=", "tr_startegy=", "atr_factor=","rvol_factor=","rsi2_factor="])
     except getopt.GetoptError:
         print ("""centralpy   -f <file containing  collateral info> 
                             -l <file with list of names to operate on>
@@ -34,6 +35,7 @@ def main(argv):
                             -g <gap percentage>
                             -a <atr_factor for strategies>
                             -r <rvol_factor for strategies>
+                            -i <rsi2_factor for RSI2 strategy
              """)
         sys.exit(2)
     for opt, arg in opts:
@@ -47,6 +49,7 @@ def main(argv):
                                 -g <gap percentage>
                                 -a <atr_factor for strategies>
                                 -r <rvol_factor for strategies>
+                                -i <rsi2_factor for RSI2 strategy
             """)    
             sys.exit()
         elif opt in("-f","--collateral_file"):
@@ -67,6 +70,8 @@ def main(argv):
             atr_factor=float(arg)
         elif opt in("-r","--rvol_factor"):
             rvol_factor=float(arg)
+        elif opt in("-i","--rsi2_factor"):
+            rsi2_factor=float(arg)
     
     dictc=hlp.get_collateral_info(collateral_file)
     etf_files=dictc['list_of_etfs'].split(",")
@@ -91,7 +96,7 @@ def main(argv):
 
     if tr_strategy != -1:
         ST=Strategies(dictc,etfs, stocks)
-        ST.run(tr_strategy, names, atr=atr_factor, rvol=rvol_factor)
+        ST.run(tr_strategy, names, atr=atr_factor, rvol=rvol_factor, rsi2f=rsi2_factor)
 
 if __name__ == "__main__":
     main(sys.argv[1:])         
