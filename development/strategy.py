@@ -121,7 +121,7 @@ class Strategies:
 
 
 
-    def TestStrategy(self, names, atr=1.0, rvol=1.2):
+    def TestStrategy(self, names, atr=1.0, rvol=1.2, rsi2f=2):
         period=250
         for stock in names:
             if stock in self._stocks:
@@ -132,8 +132,9 @@ class Strategies:
                 ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["etf_db"])
             df=ins.get_values(hlp.timeframes[self._timeframe], period)
             df1 = df[['Date', 'High', 'Low', 'Adj Close', 'Volume']]
-            #df2=ins.ind.ma(df1, 8, typ=1)
-            df2=ins.ind.rsi(df1,2)
+            #df2=ins.ind.ma(df1, 20, typ=0)
+            #df2=ins.ind.rsi(df1,2)
+            df2=ins.ind.stddev(df1)
             print(df2)
 
 

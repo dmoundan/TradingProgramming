@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import pandas as pd
+pd.options.mode.chained_assignment = None
 import numpy as np
+import math
 
 class Indicators:
     def atr(self,df,period=14):
@@ -122,8 +124,24 @@ class Indicators:
         return df2
 
 
-
-
-
-
+    def stddev(self,df, period=20):
+        #Would like to do this with an asserion or exception, TODO
+        l=df.shape[0]
+        if l <= period:
+            print("ERROR: The dataframe does not have enough data to calculate the RSI")
+        df['Mean']=df.rolling(window=period)['Adj Close'].mean()
+        k=0
+        df1=pd.DataFrame(columns=['Date','STDDEV'])
+        for i in range(period-1, l,1):
+            mn=np.asscalar(df.loc[[i],['Mean']].values)
+            sm=0
+            for j in range(i-period+1, i,1):
+                close=np.asscalar(df.loc[[j],['Adj Close']].values)
+                devsq=(mn-close)**2
+                sm+=devsq
+            std=math.sqrt(sm/period)
+            df1.loc[k,'Date']=df.loc[i,'Date']
+            df1.loc[k,'STDDEV']=std
+            k+=1
+        return df1
 
