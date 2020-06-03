@@ -78,6 +78,7 @@ class Strategies:
         osld=rsi2f
         print(osld)
         j=0
+        dfr=pd.DataFrame(columns=['Ticker','Date','RSI','MA','Close'])
         for stock in names:
             if stock in self._stocks:
                 print (stock+" is a stock")
@@ -98,14 +99,15 @@ class Strategies:
             rsi2=np.asscalar(df3.loc[[l3-1],['RSI']].values)
             curClose=np.asscalar(df.loc[[l1-1],['Adj Close']].values)
             curDate=np.asscalar(df.loc[[l1-1],['Date']].values)
-            dfr=pd.DataFrame(columns=['Date','RSI','MA','Close'])
             if  curClose > ma200 and rsi2 <= osld:
+                dfr.loc[j,'Ticker']=stock
                 dfr.loc[j,'Date']=curDate
                 dfr.loc[j,'Close']=curClose
                 dfr.loc[j,'MA']=ma200
                 dfr.loc[j,'RSI']=rsi2
                 j+=1
             elif curClose < ma200 and rsi2 >= obght:
+                dfr.loc[j,'Ticker']=stock
                 dfr.loc[j,'Date']=curDate
                 dfr.loc[j,'Close']=curClose
                 dfr.loc[j,'MA']=ma200
@@ -117,6 +119,60 @@ class Strategies:
         pdf.from_file(temp_html,out_file)
         os.remove(temp_html)      
 
+
+    def StdDevZonesStrategy(self, names, rsi2f=2, atr=1.0, rvol=1.2):
+        period=30
+        window=20
+        k=0
+        dfr=pd.DataFrame(columns=['Ticker','Date','STDDEV','MA','Close','B23','B3'])
+        for stock in names:
+            if stock in self._stocks:
+                print (stock+" is a stock")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["stock_db"])
+            elif stock in self._etfs:
+                print(stock+" is an ETF")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["etf_db"])
+            df=ins.get_values(hlp.timeframes[self._timeframe], period)
+            if df.shape[0] < 30:
+                continue
+            df1 = df[['Date', 'High', 'Low', 'Adj Close', 'Volume']]
+            df2=ins.ind.ma(df1,window,typ=0)
+            df3=ins.ind.stddev(df1,window)
+            l1=df1.shape[0]
+            l2=df2.shape[0]
+            l3=df3.shape[0]
+            curClose=np.asscalar(df1.loc[[l1-1],['Adj Close']].values)
+            curDate=np.asscalar(df1.loc[[l1-1],['Date']].values)
+            curma=np.asscalar(df2.loc[[l2-1],['MA']].values)
+            curstddev=np.asscalar(df3.loc[[l3-1],['STDDEV']].values)
+            std2=2*curstddev
+            std3=3*curstddev
+            if curClose > curma + std2:
+                dfr.loc[k,'Ticker']=stock
+                dfr.loc[k,'Date']=curDate
+                dfr.loc[k,'Close']=curClose
+                dfr.loc[k,'MA']=curma
+                dfr.loc[k,'STDDEV']=curstddev
+                if curClose > curma + std3:
+                    dfr.loc[k,'B3']="+"
+                else:
+                    dfr.loc[k,'B23']="+"
+                k+=1
+            elif  curClose < curma - std2:
+                dfr.loc[k,'Date']=curDate
+                dfr.loc[k,'Close']=curClose
+                dfr.loc[k,'MA']=curma
+                dfr.loc[k,'STDDEV']=curstddev
+                if curClose < curma - std3:
+                    dfr.loc[k,'B3']="-"
+                else:
+                    dfr.loc[k,'B23']="-"
+                k+=1  
+        temp_html="str.html"
+        dfr.to_html(temp_html, index=False)
+        out_file="str.pdf"
+        pdf.from_file(temp_html,out_file)
+        os.remove(temp_html)       
 
 
 
@@ -141,6 +197,7 @@ class Strategies:
 
     tr_strategies = { 0 : TigerSharkMomentumStrategy,
                       1 : RSI2Strategy,
+                      2 : StdDevZonesStrategy,
                      10 : TestStrategy   }
 
     def run(self, strategy, names, **kwargs):
