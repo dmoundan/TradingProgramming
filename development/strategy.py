@@ -147,7 +147,7 @@ class Strategies:
             curstddev=np.asscalar(df3.loc[[l3-1],['STDDEV']].values)
             std2=2*curstddev
             std3=3*curstddev
-            if curClose > curma + std2:
+            if curClose > curma + std2 and (ins.candle.isBearish2C(df) or ins.candle.isBearish3C(df) ):
                 dfr.loc[k,'Ticker']=stock
                 dfr.loc[k,'Date']=curDate
                 dfr.loc[k,'Close']=curClose
@@ -158,7 +158,7 @@ class Strategies:
                 else:
                     dfr.loc[k,'B23']="+"
                 k+=1
-            elif  curClose < curma - std2:
+            elif  curClose < curma - std2 and (ins.candle.isBullish2C(df) or ins.candle.isBullish3C(df) ):
                 dfr.loc[k,'Date']=curDate
                 dfr.loc[k,'Close']=curClose
                 dfr.loc[k,'MA']=curma

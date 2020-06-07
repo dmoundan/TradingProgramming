@@ -107,6 +107,20 @@ info4={ 'Ticker' :[],
        'Method' : [] 
     }
 
+info5={ 'Ticker' :[],
+       'Company': [],
+       'Industry': [],
+       'Earnings' : [],
+       'Short Float' : [],
+       'ATR' : [],
+       'Beta' : [],
+       '52W High' : [],
+       '52W Low' : [],
+       'Rel Volume' : [],
+       'Float' : [],
+       'Method' : [] 
+    }
+
 def main(argv):
     start_date=""
     earnings_flag=False
@@ -116,7 +130,8 @@ def main(argv):
     wk52_factor=-5
     x_factor=-5
     atr_factor=1.2
-    rvol_factor=2.0
+    rvol_factor=1.8
+    beta_factor=1.0
     try:
         opts, args = getopt.getopt(argv,"hd:esf:mw:x:a:r:",["help","start_date=","earnings","sfloat","sf_factor=","methods","wk52_factor=","x_factor=", "atr_factor=","rvol_factor="])
     except getopt.GetoptError:
@@ -250,6 +265,25 @@ def main(argv):
                 info4['Rel Volume'].append(d['Rel Volume'])
                 info4['Method'] = "2ndPlay"
 
+            #Low float stocks
+            if d['Beta'] != "-" and float(d['Beta']) >= beta_factor:
+                shs_outstd=d['Shs Outstand']
+                if shs_outstd.find('M') != -1:
+                    info5['Ticker'].append(stock)
+                    info5['Company'].append(d['Company'])
+                    info5['Industry'].append(d['Industry'])
+                    info5['Earnings'].append(d['Earnings'])
+                    info5['Short Float'].append(d['Short Float'])
+                    info5['ATR'].append(d['ATR'])
+                    info5['Beta'].append(d['Beta'])
+                    info5['52W High'].append(d['52W High'])
+                    info5['52W Low'].append(d['52W Low'])
+                    info5['Rel Volume'].append(d['Rel Volume'])
+                    info5['Float'].append(d['Shs Outstand'])
+                    info5['Method'] = "LowFloat"
+
+
+
         if earnings_flag == True:
             earnings=d['Earnings']
             lst=earnings.split(" ")
@@ -299,6 +333,8 @@ def main(argv):
         print(tabulate(df2, headers='keys', tablefmt='psql'))
         df3=pd.DataFrame(info4)
         print(tabulate(df3, headers='keys', tablefmt='psql'))
+        df4=pd.DataFrame(info5)
+        print(tabulate(df4, headers='keys', tablefmt='psql'))
 
 if __name__ == "__main__":
     main(sys.argv[1:])         

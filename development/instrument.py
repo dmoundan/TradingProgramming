@@ -4,6 +4,7 @@ from database import *
 import pandas as pd
 import numpy as np
 from indicators import *
+from candles import *
 
 class Instrument:
     
@@ -11,6 +12,7 @@ class Instrument:
         self._name=name
         self._DB=DataBase(db_name)
         self.ind=Indicators()
+        self.candle=Candles()
 
     def get_values(self,tf,period):
         table_name=""
