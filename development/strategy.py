@@ -175,6 +175,62 @@ class Strategies:
         os.remove(temp_html)       
 
 
+    def JBEquivStrategy(self, names, rsi2f=2, atr=1.0, rvol=1.2):
+        period=30
+        window1=2
+        window2=5
+        window3=20
+        k=0
+        dfr=pd.DataFrame(columns=['Ticker','Date','MA2','MA5','MA20','Close',"Dir"])
+        for stock in names:
+            if stock in self._stocks:
+                print (stock+" is a stock")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["stock_db"])
+            elif stock in self._etfs:
+                print(stock+" is an ETF")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["etf_db"])
+            df=ins.get_values(hlp.timeframes[self._timeframe], period)
+            if df.shape[0] < 30:
+                continue
+            df1 = df[['Date', 'High', 'Low', 'Adj Close', 'Volume']]
+            df2=ins.ind.ma(df1,window1,typ=0)
+            df3=ins.ind.ma(df1,window2,typ=0)
+            df4=ins.ind.ma(df1,window3,typ=0)
+            l1=df1.shape[0]
+            l2=df2.shape[0]
+            l3=df3.shape[0]
+            l4=df4.shape[0]
+            curClose=np.asscalar(df1.loc[[l1-1],['Adj Close']].values)
+            curDate=np.asscalar(df1.loc[[l1-1],['Date']].values)
+            cur2=np.asscalar(df2.loc[[l2-1],['MA']].values)
+            prev2=np.asscalar(df2.loc[[l2-2],['MA']].values)
+            cur5=np.asscalar(df3.loc[[l3-1],['MA']].values)
+            prev5=np.asscalar(df3.loc[[l3-2],['MA']].values)
+            cur20=np.asscalar(df4.loc[[l4-1],['MA']].values)
+            if cur2 > cur5 and prev2 < prev5 and curClose >= cur20:
+                dfr.loc[k,'Ticker']=stock
+                dfr.loc[k,'Date']=curDate
+                dfr.loc[k,'Close']=curClose
+                dfr.loc[k,'MA2']=cur2
+                dfr.loc[k,'MA5']=cur5
+                dfr.loc[k,'MA20']=cur20
+                dfr.loc[k,'Dir']="Up"
+            elif cur2 < cur5 and prev2 > prev5 and curClose <= cur20:
+                dfr.loc[k,'Ticker']=stock
+                dfr.loc[k,'Date']=curDate
+                dfr.loc[k,'Close']=curClose
+                dfr.loc[k,'MA2']=cur2
+                dfr.loc[k,'MA5']=cur5
+                dfr.loc[k,'MA20']=cur20
+                dfr.loc[k,'Dir']="Down"
+            else:
+                continue
+            k+=1
+        temp_html="str.html"
+        dfr.to_html(temp_html, index=False)
+        out_file="str.pdf"
+        pdf.from_file(temp_html,out_file)
+        os.remove(temp_html)       
 
 
     def TestStrategy(self, names, atr=1.0, rvol=1.2, rsi2f=2):
@@ -190,7 +246,8 @@ class Strategies:
             df1 = df[['Date', 'High', 'Low', 'Adj Close', 'Volume']]
             #df2=ins.ind.ma(df1, 20, typ=0)
             #df2=ins.ind.rsi(df1,2)
-            df2=ins.ind.stddev(df1)
+            #df2=ins.ind.stddev(df1)
+            df2=ins.ind.momentum(df1,2)
             print(df2)
 
 
@@ -198,6 +255,7 @@ class Strategies:
     tr_strategies = { 0 : TigerSharkMomentumStrategy,
                       1 : RSI2Strategy,
                       2 : StdDevZonesStrategy,
+                      3 : JBEquivStrategy,
                      10 : TestStrategy   }
 
     def run(self, strategy, names, **kwargs):

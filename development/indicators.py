@@ -144,4 +144,19 @@ class Indicators:
             df1.loc[k,'STDDEV']=std
             k+=1
         return df1
-
+    
+    def momentum(self,df,period=28):
+        #Would like to do this with an asserion or exception, TODO
+        l=df.shape[0]
+        if l <= period:
+            print("ERROR: The dataframe does not have enough data to calculate the momentum indicator")
+        j=0
+        df1=pd.DataFrame(columns=['Date','Momentum'])
+        for k in range(period, l,1):
+            pclose=np.asscalar(df.loc[[k-period],['Adj Close']].values) 
+            close=np.asscalar(df.loc[[k],['Adj Close']].values) 
+            momentum=(close/pclose)*100
+            df1.loc[j,'Date']=df.loc[k,'Date']
+            df1.loc[j,'Momentum']=momentum
+            j+=1      
+        return df1
