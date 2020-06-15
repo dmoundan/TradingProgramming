@@ -179,7 +179,8 @@ class Strategies:
         period=30
         window1=2
         window2=5
-        window3=20
+        window31=8
+        window32=20
         k=0
         dfr=pd.DataFrame(columns=['Ticker','Date','MA2','MA5','MA20','Close',"Dir"])
         for stock in names:
@@ -195,18 +196,21 @@ class Strategies:
             df1 = df[['Date', 'High', 'Low', 'Adj Close', 'Volume']]
             df2=ins.ind.ma(df1,window1,typ=0)
             df3=ins.ind.ma(df1,window2,typ=0)
-            df4=ins.ind.ma(df1,window3,typ=0)
+            df4=ins.ind.ma(df1,window31,typ=0)
+            df5=ins.ind.ma(df1,window32,typ=0)
             l1=df1.shape[0]
             l2=df2.shape[0]
             l3=df3.shape[0]
             l4=df4.shape[0]
+            l5=df5.shape[0]
             curClose=np.asscalar(df1.loc[[l1-1],['Adj Close']].values)
             curDate=np.asscalar(df1.loc[[l1-1],['Date']].values)
             cur2=np.asscalar(df2.loc[[l2-1],['MA']].values)
             prev2=np.asscalar(df2.loc[[l2-2],['MA']].values)
             cur5=np.asscalar(df3.loc[[l3-1],['MA']].values)
             prev5=np.asscalar(df3.loc[[l3-2],['MA']].values)
-            cur20=np.asscalar(df4.loc[[l4-1],['MA']].values)
+            cur8=np.asscalar(df4.loc[[l4-1],['MA']].values)
+            cur20=np.asscalar(df5.loc[[l5-1],['MA']].values)
             if cur2 > cur5 and prev2 < prev5 and curClose >= cur20:
                 dfr.loc[k,'Ticker']=stock
                 dfr.loc[k,'Date']=curDate
@@ -215,7 +219,7 @@ class Strategies:
                 dfr.loc[k,'MA5']=cur5
                 dfr.loc[k,'MA20']=cur20
                 dfr.loc[k,'Dir']="Up"
-            elif cur2 < cur5 and prev2 > prev5 and curClose <= cur20:
+            elif cur2 < cur5 and prev2 > prev5 and curClose <= cur8:
                 dfr.loc[k,'Ticker']=stock
                 dfr.loc[k,'Date']=curDate
                 dfr.loc[k,'Close']=curClose
@@ -231,6 +235,58 @@ class Strategies:
         out_file="str.pdf"
         pdf.from_file(temp_html,out_file)
         os.remove(temp_html)       
+
+    def HAStrategy(self, names, atr=1.0, rvol=1.2, rsi2f=2):
+        period=50
+        window=21
+        k=0
+        dfr=pd.DataFrame(columns=['Ticker','Date',"Close","Dir"])
+        for stock in names:
+            if stock in self._stocks:
+                print (stock+" is a stock")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["stock_db"])
+            elif stock in self._etfs:
+                print(stock+" is an ETF")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["etf_db"])
+            df=ins.get_values(hlp.timeframes[self._timeframe], period)
+            df1 = df[['Date', 'Open', 'High', 'Low', 'Adj Close', 'Volume']]
+            df2 = ins.candle.HeikinAshi(df1)
+            df3=ins.ind.ma(df1,window,typ=0)
+            l1=df1.shape[0]
+            l2=df2.shape[0]
+            l3=df3.shape[0]
+            curma=np.asscalar(df3.loc[[l3-1],['MA']].values)
+            curClose=np.asscalar(df1.loc[[l1-1],['Adj Close']].values)
+            curhaopen=np.asscalar(df2.loc[[l2-1],['HA_Open']].values)
+            curhaclose=np.asscalar(df2.loc[[l2-1],['HA_Close']].values)
+            prevhaopen=np.asscalar(df2.loc[[l2-2],['HA_Open']].values)
+            prevhaclose=np.asscalar(df2.loc[[l2-2],['HA_Close']].values)
+            curDate=np.asscalar(df1.loc[[l1-1],['Date']].values)
+            if curClose > curma and curhaopen < curhaclose and prevhaopen > prevhaclose:
+                dfr.loc[k,'Ticker']=stock
+                dfr.loc[k,'Date']=curDate
+                dfr.loc[k,'Close']=curClose
+                dfr.loc[k,'Dir']="Up"
+            elif curClose  < curma and curhaopen > curhaclose and prevhaopen < prevhaclose:
+                dfr.loc[k,'Ticker']=stock
+                dfr.loc[k,'Date']=curDate
+                dfr.loc[k,'Close']=curClose
+                dfr.loc[k,'Dir']="Down"
+            else:
+                continue
+            k+=1
+        temp_html="str.html"
+        dfr.to_html(temp_html, index=False)
+        out_file="str.pdf"
+        pdf.from_file(temp_html,out_file)
+        os.remove(temp_html)               
+
+
+
+
+            
+
+
 
 
     def TestStrategy(self, names, atr=1.0, rvol=1.2, rsi2f=2):
@@ -256,6 +312,7 @@ class Strategies:
                       1 : RSI2Strategy,
                       2 : StdDevZonesStrategy,
                       3 : JBEquivStrategy,
+                      4 : HAStrategy,
                      10 : TestStrategy   }
 
     def run(self, strategy, names, **kwargs):

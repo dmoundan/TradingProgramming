@@ -235,3 +235,33 @@ class Candles:
             return 21
         else:
             return 0 
+
+    def HeikinAshi(self,df):
+        l=df.shape[0]
+        dfr=pd.DataFrame(columns=['Date','HA_Open','HA_Close','HA_Low','HA_High'])
+        for i in range(0,l):
+            Close=np.asscalar(df.loc[[i],['Adj Close']].values)
+            Open=np.asscalar(df.loc[[i],['Open']].values)
+            High=np.asscalar(df.loc[[i],['High']].values)
+            Low=np.asscalar(df.loc[[i],['Low']].values)
+            Date=np.asscalar(df.loc[[i],['Date']].values)
+            dfr.loc[i,'Date']=Date
+            if i == 0:
+                dfr.loc[i,'HA_High']=High
+                dfr.loc[i,'HA_Low']=Low
+                dfr.loc[i,'HA_Open']= (Open+Close)/2
+                dfr.loc[i,'HA_Close'] =(Open+Close+High+Low)/4
+            else:
+                ha_close=(Open+Close+High+Low)/4
+                pha_open=np.asscalar(dfr.loc[[i-1],['HA_Open']].values)
+                pha_close=np.asscalar(dfr.loc[[i-1],['HA_Close']].values)
+                ha_open=(pha_open+pha_close)/2
+                dfr.loc[i,'HA_High']=max(High, ha_open,ha_close)
+                dfr.loc[i,'HA_Low']=min(Low, ha_open,ha_close)
+                dfr.loc[i,'HA_Open']= ha_open
+                dfr.loc[i,'HA_Close'] = ha_close
+        return dfr
+
+        
+
+
