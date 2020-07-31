@@ -95,8 +95,8 @@ def main(argv):
         BT.run(strategy, names, **dict1)
 
     if tr_strategy != -1:
-        ST=Strategies(dictc,etfs, stocks)
+        ST=Strategies(dictc,etfs, stocks, timeframe)
         ST.run(tr_strategy, names, atr=atr_factor, rvol=rvol_factor, rsi2f=rsi2_factor)
 
 if __name__ == "__main__":
-    main(sys.argv[1:])         
+    main(sys.argv[1:])        

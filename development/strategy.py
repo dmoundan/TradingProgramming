@@ -282,10 +282,102 @@ class Strategies:
         os.remove(temp_html)               
 
 
+    def MomentumStrategy(self, names, atr=1.0, rvol=1.2, rsi2f=2):
+        period=90
+        window=28
+        window1=60
+        k=0
+        dfr=pd.DataFrame(columns=['Ticker','Date',"Close","Dir",'Target','Trigger'])
+        for stock in names:
+            if stock in self._stocks:
+                print (stock+" is a stock")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["stock_db"])
+            elif stock in self._etfs:
+                print(stock+" is an ETF")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["etf_db"])
+            df=ins.get_values(hlp.timeframes[self._timeframe], period)
+            df1 = df[['Date', 'Open', 'High', 'Low', 'Adj Close', 'Volume']]
+            df11=df1.iloc[-window1:-1]
+            df11.columns=df11.columns.str.replace(' ','_')
+            df2 = ins.ind.momentum(df1)
+            df22=df2.iloc[-window1:-1]
+            df1minclose=df11[df11.Adj_Close == df11.Adj_Close.min()]
+            df1maxclose=df11[df11.Adj_Close == df11.Adj_Close.max()]
+            mincloseDate=np.asscalar(df1minclose.loc[[0],['Date']].values)
+            maxcloseDate=np.asscalar(df1maxclose.loc[[0],['Date']].values)            
+            df2minmomentum=df22[df22.Momentum == df22.Momentum.min()]
+            df2maxmomentum=df22[df22.Momentum == df22.Momentum.max()]
+            minmomentumDate=np.asscalar(df2minmomentum.loc[[0],['Date']].values)
+            maxmomentumDate=np.asscalar(df2maxmomentum.loc[[0],['Date']].values)
+            if mincloseDate != minmomentumDate and minmomentumDate < mincloseDate:
+                df1minmomentumclose=df11[df11.Date == minmomentumDate]
+                minmomentum=np.asscalar(df1minmomentumclose.loc[[0],['Adj_Close']].values)
+                df2corrmomentum=df22[df22.Date == mincloseDate]
+                corrmomentum=np.asscalar(df2corrmomentum.loc[[0],['Momentum']].values)
+                if minmomentum < corrmomentum:
+                    df111=df11[df11.Date >= minmomentumDate & df11.Date >= mincloseDate]
+                    df222=df22[df22.Date >= minmomentumDate & df22.Date >= mincloseDate]
+                    trigger=df222['Momentum'].max()
+                    hh=df111['Adj_Close'].max()
+                    minclose=np.asscalar(df1minclose.loc[[0],['Adj_Close']]).values
+                    target=hh-minclose
+                    dfr.loc[k,'Ticker']=stock
+                    dfr.loc[k,'Date']=mincloseDate
+                    dfr.loc[k,'Close']=minclose
+                    dfr.loc[k,'Dir']="Up"
+                    dfr.loc[k,'Target']=target
+                    dfr.loc[k,'Trigger']=trigger
+                    k+=1
+#            elif :
+        temp_html="str.html"
+        dfr.to_html(temp_html, index=False)
+        out_file="str.pdf"
+        pdf.from_file(temp_html,out_file)
+        os.remove(temp_html)         
 
-
+    def PinBarStrategy(self, names, rsi2f=2, atr=1.0, rvol=1.2):
+        period=60
+        window=50
+        k=0
+        dfr=pd.DataFrame(columns=['Ticker','Date','MA','Close','Dir'])
+        for stock in names:
+            if stock in self._stocks:
+                print (stock+" is a stock")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["stock_db"])
+            elif stock in self._etfs:
+                print(stock+" is an ETF")
+                ins=Instrument(stock, self._dictc["DB_dir"]+"/"+self._dictc["etf_db"])
+            df=ins.get_values(hlp.timeframes[self._timeframe], period)
+            if df.shape[0] < period:
+                continue
+            df1 = df[['Date', 'High', 'Low', 'Open', 'Adj Close', 'Volume']]
+            df2=ins.ind.ma(df1,window,typ=1)
+            l1=df1.shape[0]
+            l2=df2.shape[0]
+            curClose=np.asscalar(df1.loc[[l1-1],['Adj Close']].values)
+            curDate=np.asscalar(df1.loc[[l1-1],['Date']].values)
+            cur50=np.asscalar(df2.loc[[l2-1],['MA']].values)
+            if curClose > cur50 and ins.candle.isBullish1C(df1):
+                dfr.loc[k,'Ticker']=stock
+                dfr.loc[k,'Date']=curDate
+                dfr.loc[k,'Close']=curClose
+                dfr.loc[k,'MA']=cur50
+                dfr.loc[k,'Dir']="Up"
+            elif curClose < cur50 and ins.candle.isBearish1C(df1):
+                dfr.loc[k,'Ticker']=stock
+                dfr.loc[k,'Date']=curDate
+                dfr.loc[k,'Close']=curClose
+                dfr.loc[k,'MA']=cur50
+                dfr.loc[k,'Dir']="Down"
+            else:
+                continue
+            k+=1
+        temp_html="str.html"
+        dfr.to_html(temp_html, index=False)
+        out_file="str.pdf"
+        pdf.from_file(temp_html,out_file)
+        os.remove(temp_html)        
             
-
 
 
 
@@ -313,6 +405,8 @@ class Strategies:
                       2 : StdDevZonesStrategy,
                       3 : JBEquivStrategy,
                       4 : HAStrategy,
+                      5 : MomentumStrategy,
+                      6: PinBarStrategy,
                      10 : TestStrategy   }
 
     def run(self, strategy, names, **kwargs):
